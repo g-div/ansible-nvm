@@ -1,13 +1,27 @@
 ---
 - name: Install dependencies
   sudo: yes
-  apt: pkg={{ item }} state=present
+  apt: name={{ item }} state=present update_cache=yes
   with_items:
     - git
     - curl
     - build-essential
     - libssl-dev
   tags: nvm
+  when: ansible_pkg_mgr == "apt"
+
+- name: Install dependencies
+  sudo: yes
+  yum: name={{ item }} state=present
+  with_items:
+    - git
+    - gcc
+    - gcc-c++
+    - make
+    - openssl-devel
+    - libselinux-python
+  tags: nvm
+  when: ansible_pkg_mgr == "yum"
 
 - name: Check for nvm
   remote_user: "{{ nvm.user }}"
@@ -25,6 +39,8 @@
   lineinfile: >
     dest={{ nvm.profile_file }}
     line="source ~{{ nvm.user }}/.nvm/nvm.sh"
+    state=present
+    create=yes
   tags: nvm
 
 - name: Install node
